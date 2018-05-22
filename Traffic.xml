@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
+<nta>
+	<declaration>// Place global declarations here.
+
+chan get_right, released_right;
+const int N = 4; 
+typedef int[0,N-1] id;
+int turn = 0;
+int[0,N] len = N;
+int getTurn(){
+return turn;
+}
+void incTurn()
+{
+turn = turn+1;}
+void setTurn()
+{
+if (turn &gt;= 4)
+turn = 0;}
+</declaration>
+	<template>
+		<name x="5" y="5">Signal</name>
+		<parameter>const id i</parameter>
+		<declaration>// Place local declarations here.
+clock x;</declaration>
+		<location id="id0" x="544" y="161">
+			<name x="561" y="136">Red</name>
+			<label kind="invariant" x="561" y="153">x&lt;=16</label>
+		</location>
+		<location id="id1" x="544" y="23">
+			<name x="527" y="-17">Green</name>
+			<label kind="invariant" x="561" y="8">x&lt;=10</label>
+		</location>
+		<location id="id2" x="314" y="25">
+			<name x="289" y="-8">begin</name>
+		</location>
+		<init ref="id2"/>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id2"/>
+			<label kind="guard" x="442" y="170">x==16</label>
+			<label kind="assignment" x="357" y="170">setTurn()</label>
+			<nail x="314" y="161"/>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id0"/>
+			<label kind="guard" x="493" y="59">x==10</label>
+			<label kind="synchronisation" x="552" y="68">released_right!</label>
+			<label kind="assignment" x="484" y="76">incTurn()</label>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id1"/>
+			<label kind="guard" x="399" y="25">getTurn()==i</label>
+			<label kind="synchronisation" x="382" y="-8">get_right!</label>
+			<label kind="assignment" x="357" y="25">x=0</label>
+		</transition>
+	</template>
+	<template>
+		<name>Right</name>
+		<location id="id3" x="-170" y="-195">
+			<name x="-180" y="-229">yes</name>
+		</location>
+		<location id="id4" x="-357" y="-195">
+			<name x="-367" y="-229">No</name>
+		</location>
+		<init ref="id4"/>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id4"/>
+			<label kind="synchronisation" x="-306" y="-136">released_right?</label>
+			<nail x="-263" y="-136"/>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id3"/>
+			<label kind="synchronisation" x="-297" y="-280">get_right?</label>
+			<nail x="-263" y="-255"/>
+		</transition>
+	</template>
+	<system>// Place template instantiations here.
+
+Right1 = Right();
+
+// List one or more processes to be composed into a system.
+system Signal,Right1;
+    </system>
+	<queries>
+		<query>
+			<formula>E&lt;&gt; not deadlock
+			</formula>
+			<comment>
+			</comment>
+		</query>
+		<query>
+			<formula>A[] Right1.yes == (Signal(0).Green || Signal(1).Green || Signal(2).Green || Signal(3).Green)
+			</formula>
+			<comment>
+			</comment>
+		</query>
+		<query>
+			<formula>A[] not (Signal(0).Red &amp;&amp; Signal(1).Red &amp;&amp; Signal(2).Red &amp;&amp; Signal(3).Red)
+			</formula>
+			<comment>Deadlock Avoidance
+			</comment>
+		</query>
+		<query>
+			<formula>A[] not (Signal(0).Green &amp;&amp; Signal(1).Green &amp;&amp; Signal(2).Green &amp;&amp; Signal(3).Green)
+			</formula>
+			<comment>Mutual Exclusion
+			</comment>
+		</query>
+	</queries>
+</nta>
